@@ -1,20 +1,23 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
+import Home from "./pages/Home";
 import Register from "./pages/Register";
+import Login from "./pages/Login";
 import PatientDashboard from "./pages/PatientDashboard";
-import DoctorDashboard from "./pages/DoctorDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
+import Navbar from "./components/Navbar";
 
-export default function App() {
+function App() {
   return (
     <BrowserRouter>
+      <Navbar />
+
       <Routes>
-        <Route path="/login" element={<Login/>} />
+        <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/patient" element={<PatientDashboard />} />
-        <Route path="/doctor" element={<DoctorDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );
 }
+
+export default App;

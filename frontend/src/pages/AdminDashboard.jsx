@@ -1,85 +1,103 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
-import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
-  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "admin") {
-      navigate("/");
-      return;
-    }
-
-    fetchUsers();
-  }, []);
-
+  // Fetch all users
   const fetchUsers = async () => {
     try {
-      const res = await API.get("/admin/users");
+      const res = await API.get("/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setUsers(res.data);
     } catch (err) {
       alert("Failed to load users");
     }
   };
 
+  // Approve doctor
   const approveDoctor = async (id) => {
     try {
-      await API.put(`/admin/${id}/approve`);
+      await API.put(
+        `/admin/${id}/approve`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       fetchUsers();
     } catch (err) {
-      alert("Approval failed");
+      alert(err.response?.data?.message || "Approval failed");
     }
   };
 
+  useEffect(() => {
+    if (!token || role !== "admin") {
+      window.location.href = "/login";
+      return;
+    }
+    fetchUsers();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Admin Dashboard</h1>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
-      <div className="grid gap-4 max-w-4xl mx-auto">
-        {users.map((user) => (
-          <div
-            key={user._id}
-            className="bg-white p-4 rounded shadow flex justify-between items-center"
-          >
-            <div>
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-sm text-gray-600">{user.email}</p>
-              <p className="text-sm">
-                Role:{" "}
-                <span className="font-semibold capitalize">
-                  {user.role}
-                </span>
-              </p>
-              {user.role === "doctor" && (
-                <p className="text-sm">
-                  Status:{" "}
-                  <span
-                    className={
-                      user.approved
-                        ? "text-green-600 font-semibold"
-                        : "text-red-600 font-semibold"
-                    }
-                  >
-                    {user.approved ? "Approved" : "Pending"}
-                  </span>
-                </p>
-              )}
-            </div>
+      {users.length === 0 ? (
+        <p>No users found</p>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded shadow">
+          <table className="w-full border">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">Role</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Action</th>
+              </tr>
+            </thead>
 
-            {user.role === "doctor" && !user.approved && (
-              <button
-                onClick={() => approveDoctor(user._id)}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Approve
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u._id}>
+                  <td className="p-2 border">{u.name}</td>
+                  <td className="p-2 border">{u.email}</td>
+                  <td className="p-2 border capitalize">{u.role}</td>
+                  <td className="p-2 border">
+                    {u.isApproved ? (
+                      <span className="text-green-600 font-semibold">
+                        Approved
+                      </span>
+                    ) : (
+                      <span className="text-red-600 font-semibold">
+                        Pending
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2 border">
+                    {u.role === "doctor" && !u.isApproved && (
+                      <button
+                        onClick={() => approveDoctor(u._id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                      >
+                        Approve
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

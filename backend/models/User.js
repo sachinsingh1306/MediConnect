@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
     },
     isApproved: {
       type: Boolean,
-      default: false, // for doctors
+      default: false,
     },
   },
   { timestamps: true }

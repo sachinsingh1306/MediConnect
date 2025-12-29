@@ -6,7 +6,9 @@ export default function AdminDashboard() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  // Fetch all users
+  // =========================
+  // FETCH ALL USERS
+  // =========================
   const fetchUsers = async () => {
     try {
       const res = await API.get("/admin/users", {
@@ -16,11 +18,14 @@ export default function AdminDashboard() {
       });
       setUsers(res.data);
     } catch (err) {
+      console.error(err);
       alert("Failed to load users");
     }
   };
 
-  // Approve doctor
+  // =========================
+  // APPROVE DOCTOR
+  // =========================
   const approveDoctor = async (id) => {
     try {
       await API.put(
@@ -32,12 +37,17 @@ export default function AdminDashboard() {
           },
         }
       );
+
+      // refresh list
       fetchUsers();
     } catch (err) {
       alert(err.response?.data?.message || "Approval failed");
     }
   };
 
+  // =========================
+  // AUTH CHECK
+  // =========================
   useEffect(() => {
     if (!token || role !== "admin") {
       window.location.href = "/login";
@@ -46,12 +56,17 @@ export default function AdminDashboard() {
     fetchUsers();
   }, []);
 
+  // =========================
+  // FILTER ONLY DOCTORS
+  // =========================
+  const doctors = users.filter((u) => u.role === "doctor");
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
-      {users.length === 0 ? (
-        <p>No users found</p>
+      {doctors.length === 0 ? (
+        <p className="text-gray-600">No doctors found</p>
       ) : (
         <div className="overflow-x-auto bg-white rounded shadow">
           <table className="w-full border">
@@ -66,7 +81,7 @@ export default function AdminDashboard() {
             </thead>
 
             <tbody>
-              {users.map((u) => (
+              {doctors.map((u) => (
                 <tr key={u._id}>
                   <td className="p-2 border">{u.name}</td>
                   <td className="p-2 border">{u.email}</td>
@@ -83,7 +98,7 @@ export default function AdminDashboard() {
                     )}
                   </td>
                   <td className="p-2 border">
-                    {u.role === "doctor" && !u.isApproved && (
+                    {!u.isApproved && (
                       <button
                         onClick={() => approveDoctor(u._id)}
                         className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"

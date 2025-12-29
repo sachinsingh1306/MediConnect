@@ -47,11 +47,12 @@ router.get("/doctor", authMiddleware, async (req, res) => {
   }
 
   const appointments = await Appointment.find()
-    .populate("patientId", "name")
-    .select("patientId status");
+    .populate("patientId", "name");
 
   res.json(appointments);
 });
+
+
 
 // ==============================
 // DOCTOR UPDATE APPOINTMENT STATUS

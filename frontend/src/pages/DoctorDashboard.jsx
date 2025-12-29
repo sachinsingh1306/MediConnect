@@ -32,7 +32,15 @@ export default function DoctorDashboard() {
           },
         }
       );
-      fetchAppointments();
+
+      // 🔥 FRONTEND LOGIC
+      if (status === "rejected") {
+        setAppointments((prev) =>
+          prev.filter((a) => a._id !== id)
+        );
+      } else {
+        fetchAppointments();
+      }
     } catch (err) {
       alert(err.response?.data?.message || "Error updating status");
     }
@@ -58,6 +66,9 @@ export default function DoctorDashboard() {
             <thead>
               <tr className="bg-gray-200">
                 <th className="p-2 border">Patient</th>
+                <th className="p-2 border">Date</th>
+                <th className="p-2 border">Time</th>
+                <th className="p-2 border">Reason</th>
                 <th className="p-2 border">Status</th>
                 <th className="p-2 border">Actions</th>
               </tr>
@@ -67,32 +78,48 @@ export default function DoctorDashboard() {
               {appointments.map((a) => (
                 <tr key={a._id}>
                   <td className="p-2 border">
-                    {a.patientId?.name || "Unknown"}
+                    {a.patientId?.name}
                   </td>
+                  <td className="p-2 border">{a.date}</td>
+                  <td className="p-2 border">{a.time}</td>
+                  <td className="p-2 border">{a.reason}</td>
                   <td className="p-2 border capitalize">
                     {a.status}
                   </td>
+
                   <td className="p-2 border space-x-2">
-                    <button
-                      onClick={() => updateStatus(a._id, "accepted")}
-                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                    >
-                      Accept
-                    </button>
+                    {a.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() =>
+                            updateStatus(a._id, "accepted")
+                          }
+                          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                        >
+                          Accept
+                        </button>
 
-                    <button
-                      onClick={() => updateStatus(a._id, "rejected")}
-                      className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                    >
-                      Reject
-                    </button>
+                        <button
+                          onClick={() =>
+                            updateStatus(a._id, "rejected")
+                          }
+                          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
 
-                    <button
-                      onClick={() => updateStatus(a._id, "completed")}
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                    >
-                      Complete
-                    </button>
+                    {a.status === "accepted" && (
+                      <button
+                        onClick={() =>
+                          updateStatus(a._id, "completed")
+                        }
+                        className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                      >
+                        Mark Completed
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

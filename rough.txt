@@ -1,0 +1,13 @@
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NTE5ZDkwNTFlNzg1MmVmMTU4OTI2MyIsInJvbGUiOiJwYXRpZW50IiwiaWF0IjoxNzY2OTU2NzAxLCJleHAiOjE3NjcwNDMxMDF9.Nm_l1SdMuydPsmyJ38RrzJ-K7fcUvfey5qqcytoBwXE",
+    "role": "patient",
+    "userId": "69519d9051e7852ef1589263"
+}
+
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NTE5ZGMyNTFlNzg1MmVmMTU4OTI2NiIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjY5NTY5OTcsImV4cCI6MTc2NzA0MzM5N30.9uVqDTXZ95jlrJ1AAnO9zuXu6RJ2MPbJ1qXUfFBOqpk",
+    "role": "doctor",
+    "userId": "69519dc251e7852ef1589266"
+}
+

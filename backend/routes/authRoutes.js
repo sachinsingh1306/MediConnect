@@ -5,10 +5,10 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-/* ================= REGISTER ================= */
+/* REGISTER */
 router.post("/register", async (req, res) => {
   try {
-    const {
+    let {
       name,
       email,
       password,
@@ -22,7 +22,12 @@ router.post("/register", async (req, res) => {
       adminCode,
     } = req.body;
 
-    // Admin security
+    email = email.toLowerCase().trim();
+
+    if (!email || !password || !name) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
     if (role === "admin" && adminCode !== process.env.ADMIN_SECRET) {
       return res.status(403).json({ message: "Invalid admin code" });
     }
@@ -48,28 +53,33 @@ router.post("/register", async (req, res) => {
     });
 
     await user.save();
-
     res.status(201).json({ message: "Registered successfully" });
-  } catch (err) {
-    console.error("Register Error:", err);
-    res.status(500).json({ message: err.message });
+  } catch {
+    res.status(500).json({ message: "Registration failed" });
   }
 });
 
-/* ================= LOGIN ================= */
+/* LOGIN */
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email.toLowerCase().trim();
+    const { password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "User not found" });
 
     if (user.isBlocked) {
-      return res.status(403).json({ message: "Account is blocked" });
+      return res.status(403).json({ message: "Account blocked" });
+    }
+
+    if (user.role === "doctor" && !user.isApproved) {
+      return res.status(403).json({ message: "Doctor not approved yet" });
     }
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: "Invalid credentials" });
+    if (!match) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -78,7 +88,7 @@ router.post("/login", async (req, res) => {
     );
 
     res.json({ token, role: user.role });
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Login failed" });
   }
 });

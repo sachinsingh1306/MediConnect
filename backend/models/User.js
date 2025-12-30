@@ -5,12 +5,15 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
     },
 
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
 
     password: {
@@ -24,12 +27,13 @@ const userSchema = new mongoose.Schema(
       default: "patient",
     },
 
-    // ================= DOCTOR FIELDS =================
+    /* ================= DOCTOR FIELDS ================= */
     specialization: {
       type: String,
       required: function () {
         return this.role === "doctor";
       },
+      trim: true,
     },
 
     experience: {
@@ -44,9 +48,10 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return this.role === "doctor";
       },
+      trim: true,
     },
 
-    // ================= PATIENT FIELDS =================
+    /* ================= PATIENT FIELDS ================= */
     age: {
       type: Number,
       required: function () {
@@ -59,6 +64,7 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return this.role === "patient";
       },
+      trim: true,
     },
 
     address: {
@@ -66,9 +72,10 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return this.role === "patient";
       },
+      trim: true,
     },
 
-    // ================= STATUS =================
+    /* ================= STATUS ================= */
     isApproved: {
       type: Boolean,
       default: false,
@@ -82,11 +89,13 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ FIXED PRE-SAVE HOOK
-userSchema.pre("save", function () {
+/* ================= PRE-SAVE HOOK ================= */
+userSchema.pre("save", function (next) {
+  // Patients are auto-approved
   if (this.role === "patient") {
     this.isApproved = true;
   }
+  next();
 });
 
 module.exports = mongoose.model("User", userSchema);

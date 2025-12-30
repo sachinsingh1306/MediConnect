@@ -5,20 +5,32 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-/* ===============================
-   DOCTOR CREATE PRESCRIPTION
-================================ */
+/* DOCTOR CREATE PRESCRIPTION */
 router.post("/", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "doctor") {
-      return res.status(403).json({ message: "Access denied" });
+      return res.status(403).json({ message: "Doctors only" });
     }
 
     const { appointmentId, medicines, notes } = req.body;
 
-    const appointment = await Appointment.findById(appointmentId);
+    const appointment = await Appointment.findOne({
+      _id: appointmentId,
+      doctorId: req.user.id,
+      status: "completed",
+    });
+
     if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
+      return res
+        .status(404)
+        .json({ message: "Completed appointment not found" });
+    }
+
+    const exists = await Prescription.findOne({ appointmentId });
+    if (exists) {
+      return res
+        .status(400)
+        .json({ message: "Prescription already exists" });
     }
 
     const prescription = new Prescription({
@@ -30,36 +42,27 @@ router.post("/", authMiddleware, async (req, res) => {
     });
 
     await prescription.save();
-
-    console.log("Prescription Saved:", prescription); // ✅ DEBUG
-
     res.json(prescription);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Prescription error" });
+  } catch {
+    res.status(500).json({ message: "Prescription failed" });
   }
 });
 
-/* ===============================
-   PATIENT VIEW MY PRESCRIPTIONS
-================================ */
+/* PATIENT VIEW PRESCRIPTIONS */
 router.get("/my", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "patient") {
-      return res.status(403).json({ message: "Access denied" });
+      return res.status(403).json({ message: "Patients only" });
     }
 
     const prescriptions = await Prescription.find({
-      patientId: req.user.id, // ✅ FIX
+      patientId: req.user.id,
     })
       .populate("doctorId", "name")
       .populate("appointmentId", "date time department");
 
-    console.log("Found prescriptions:", prescriptions.length); // ✅ DEBUG
-
     res.json(prescriptions);
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: "Fetch failed" });
   }
 });

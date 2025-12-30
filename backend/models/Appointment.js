@@ -17,10 +17,11 @@ const appointmentSchema = new mongoose.Schema(
     department: {
       type: String,
       required: true,
+      trim: true,
     },
 
     date: {
-      type: String,
+      type: String, // keep String since frontend already uses it
       required: true,
     },
 
@@ -32,11 +33,25 @@ const appointmentSchema = new mongoose.Schema(
     reason: {
       type: String,
       required: true,
+      trim: true,
     },
 
-    age: Number,
-    bloodGroup: String,
-    address: String,
+    age: {
+      type: Number,
+      required: true,
+    },
+
+    bloodGroup: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
     status: {
       type: String,

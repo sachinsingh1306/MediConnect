@@ -6,6 +6,7 @@ const prescriptionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Appointment",
       required: true,
+      unique: true, // 🔥 prevents duplicate prescriptions
     },
 
     patientId: {
@@ -22,14 +23,27 @@ const prescriptionSchema = new mongoose.Schema(
 
     medicines: [
       {
-        name: String,
-        dosage: String,
-        duration: String,
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        dosage: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        duration: {
+          type: String,
+          required: true,
+          trim: true,
+        },
       },
     ],
 
     notes: {
       type: String,
+      trim: true,
     },
   },
   { timestamps: true }

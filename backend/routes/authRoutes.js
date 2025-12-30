@@ -1,22 +1,35 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+
 const router = express.Router();
 
-const User = require("../models/User");
-const authMiddleware = require("../middleware/authMiddleware");
-
-/* =========================
-   REGISTER (Patient / Doctor / Admin)
-========================= */
+/* ================= REGISTER ================= */
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role, department } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      age,
+      bloodGroup,
+      address,
+      specialization,
+      experience,
+      department,
+      adminCode,
+    } = req.body;
 
-    // Check existing user
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+    // Admin security
+    if (role === "admin" && adminCode !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ message: "Invalid admin code" });
+    }
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -26,39 +39,37 @@ router.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      department: role === "doctor" ? department : undefined,
-      isApproved: role === "doctor" ? false : true,
+      age,
+      bloodGroup,
+      address,
+      specialization,
+      experience,
+      department,
     });
 
     await user.save();
 
-    res.status(201).json({ message: "Registration successful" });
+    res.status(201).json({ message: "Registered successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Register Error:", err);
+    res.status(500).json({ message: err.message });
   }
 });
 
-/* =========================
-   LOGIN
-========================= */
+/* ================= LOGIN ================= */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) return res.status(400).json({ message: "User not found" });
 
-    if (user.isBlocked)
-      return res.status(403).json({ message: "Account blocked by admin" });
+    if (user.isBlocked) {
+      return res.status(403).json({ message: "Account is blocked" });
+    }
 
-    if (user.role === "doctor" && !user.isApproved)
-      return res.status(403).json({ message: "Doctor not approved yet" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -66,66 +77,9 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.json({
-      token,
-      role: user.role,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+    res.json({ token, role: user.role });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* =========================
-   BLOCK / UNBLOCK USER (ADMIN)
-========================= */
-router.put("/:id/block", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin access only" });
-    }
-
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.isBlocked = !user.isBlocked;
-    await user.save();
-
-    res.json({
-      message: user.isBlocked ? "User blocked" : "User unblocked",
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* =========================
-   APPROVE DOCTOR (ADMIN)
-========================= */
-router.put("/:id/approve", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin access only" });
-    }
-
-    const doctor = await User.findById(req.params.id);
-    if (!doctor || doctor.role !== "doctor") {
-      return res.status(404).json({ message: "Doctor not found" });
-    }
-
-    doctor.isApproved = true;
-    await doctor.save();
-
-    res.json({ message: "Doctor approved" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Login failed" });
   }
 });
 

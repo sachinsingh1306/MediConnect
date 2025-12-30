@@ -5,14 +5,12 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
     },
 
     email: {
       type: String,
       required: true,
       unique: true,
-      lowercase: true,
     },
 
     password: {
@@ -26,17 +24,29 @@ const userSchema = new mongoose.Schema(
       default: "patient",
     },
 
-    isApproved:{
-      type: Boolean,
-      default: function () {
-        // ✅ Auto-approve patient & admin
-        return this.role === "patient" || this.role === "admin";
+    // ================= DOCTOR FIELDS =================
+    specialization: {
+      type: String,
+      required: function () {
+        return this.role === "doctor";
       },
     },
 
-    isBlocked: { type: Boolean, default: false },
+    experience: {
+      type: Number,
+      required: function () {
+        return this.role === "doctor";
+      },
+    },
 
-    // Patient fields
+    department: {
+      type: String,
+      required: function () {
+        return this.role === "doctor";
+      },
+    },
+
+    // ================= PATIENT FIELDS =================
     age: {
       type: Number,
       required: function () {
@@ -58,29 +68,25 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // Doctor fields
-    specialization: {
-      type: String,
-      required: function () {
-        return this.role === "doctor";
-      },
+    // ================= STATUS =================
+    isApproved: {
+      type: Boolean,
+      default: false,
     },
 
-    experience: {
-      type: Number,
-      required: function () {
-        return this.role === "doctor";
-      },
-    },
-
-    department: {
-      type: String,
-      required: function () {
-        return this.role === "doctor";
-      },
+    isBlocked: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
 );
+
+// ✅ FIXED PRE-SAVE HOOK
+userSchema.pre("save", function () {
+  if (this.role === "patient") {
+    this.isApproved = true;
+  }
+});
 
 module.exports = mongoose.model("User", userSchema);

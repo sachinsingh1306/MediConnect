@@ -1,86 +1,90 @@
 const express = require("express");
 const Appointment = require("../models/Appointment");
+const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// ==============================
-// PATIENT BOOK APPOINTMENT
-// ==============================
+/* ===============================
+   GET APPROVED DOCTORS BY DEPARTMENT
+================================ */
+router.get("/doctors/:department", authMiddleware, async (req, res) => {
+  try {
+    const doctors = await User.find({
+      role: "doctor",
+      department: req.params.department,
+      isApproved: true,
+      isBlocked: false,
+    }).select("name department");
+
+    res.json(doctors);
+  } catch {
+    res.status(500).json({ message: "Failed to load doctors" });
+  }
+});
+
+/* ===============================
+   PATIENT BOOK APPOINTMENT
+================================ */
 router.post("/", authMiddleware, async (req, res) => {
   const appointment = new Appointment({
     patientId: req.user.id,
-    doctor: req.body.doctor,
+    doctorId: req.body.doctorId,
+    department: req.body.department,
     date: req.body.date,
     time: req.body.time,
     reason: req.body.reason,
-    age:req.body.age,
-    bloodGroup:req.body.bloodGroup,
-    address:req.body.address,
+    age: req.body.age,
+    bloodGroup: req.body.bloodGroup,
+    address: req.body.address,
   });
 
   await appointment.save();
   res.json({ message: "Appointment booked successfully" });
 });
 
-
-// ==============================
-// PATIENT VIEW MY APPOINTMENTS
-// ==============================
+/* ===============================
+   PATIENT VIEW MY APPOINTMENTS
+================================ */
 router.get("/my", authMiddleware, async (req, res) => {
-  if (req.user.role !== "patient") {
+  if (req.user.role !== "patient")
     return res.status(403).json({ message: "Access denied" });
-  }
 
   const appointments = await Appointment.find({
-    patientId: req.user.id
-  }).select("doctor date time status reason");
+    patientId: req.user.id,
+  })
+    .populate("doctorId", "name")
+    .select("doctorId department date time status");
 
   res.json(appointments);
 });
 
-
-
-// ==============================
-// DOCTOR VIEW APPOINTMENTS
-// ==============================
+/* ===============================
+   DOCTOR VIEW APPOINTMENTS
+================================ */
 router.get("/doctor", authMiddleware, async (req, res) => {
-  if (req.user.role !== "doctor") {
+  if (req.user.role !== "doctor")
     return res.status(403).json({ message: "Access denied" });
-  }
 
-  const appointments = await Appointment.find()
-    .populate("patientId", "name");
+  const appointments = await Appointment.find({
+    doctorId: req.user.id,
+  }).populate("patientId", "name");
 
   res.json(appointments);
 });
 
-
-
-// ==============================
-// DOCTOR UPDATE APPOINTMENT STATUS
-// ==============================
+/* ===============================
+   DOCTOR UPDATE STATUS
+================================ */
 router.put("/:id/status", authMiddleware, async (req, res) => {
-  if (req.user.role !== "doctor") {
+  if (req.user.role !== "doctor")
     return res.status(403).json({ message: "Access denied" });
-  }
-
-  const { status } = req.body;
-
-  const allowed = ["accepted", "rejected", "completed"];
-  if (!allowed.includes(status)) {
-    return res.status(400).json({ message: "Invalid status" });
-  }
 
   const appointment = await Appointment.findById(req.params.id);
-  if (!appointment) {
-    return res.status(404).json({ message: "Appointment not found" });
-  }
-
-  appointment.status = status;
+  appointment.status = req.body.status;
   await appointment.save();
 
-  res.json({ message: "Status updated", appointment });
+  res.json({ message: "Status updated" });
 });
 
 module.exports = router;

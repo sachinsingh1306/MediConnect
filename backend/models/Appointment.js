@@ -5,20 +5,44 @@ const appointmentSchema = new mongoose.Schema(
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
-    doctor: {
+
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    department: {
       type: String,
-      required: true
+      required: true,
     },
-    date: String,
-    time: String,
-    reason: String,
+
+    date: {
+      type: String,
+      required: true,
+    },
+
+    time: {
+      type: String,
+      required: true,
+    },
+
+    reason: {
+      type: String,
+      required: true,
+    },
+
+    age: Number,
+    bloodGroup: String,
+    address: String,
+
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected", "completed"],
-      default: "pending"
-    }
+      default: "pending",
+    },
   },
   { timestamps: true }
 );

@@ -6,8 +6,8 @@ import PatientDashboard from "./pages/PatientDashboard";
 import Navbar from "./components/Navbar";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-
-
+import PatientPrescription from "./pages/PatientPrescription";
+import DoctorPrescription from "./pages/DoctorPrescription";
 function App() {
   return (
     <BrowserRouter>
@@ -20,6 +20,7 @@ function App() {
         <Route path="/patient" element={<PatientDashboard />} />
         <Route path="/doctor" element={<DoctorDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/doctor/prescription" element={<DoctorPrescription />} />
       </Routes>
     </BrowserRouter>
   );

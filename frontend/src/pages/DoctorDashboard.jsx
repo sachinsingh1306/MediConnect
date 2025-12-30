@@ -6,7 +6,9 @@ export default function DoctorDashboard() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  // Fetch appointments
+  // ===============================
+  // Fetch Doctor Appointments
+  // ===============================
   const fetchAppointments = async () => {
     try {
       const res = await API.get("/appointments/doctor", {
@@ -20,7 +22,9 @@ export default function DoctorDashboard() {
     }
   };
 
-  // Update appointment status
+  // ===============================
+  // Update Appointment Status
+  // ===============================
   const updateStatus = async (id, status) => {
     try {
       await API.put(
@@ -33,7 +37,7 @@ export default function DoctorDashboard() {
         }
       );
 
-      // 🔥 FRONTEND LOGIC
+      // Frontend logic
       if (status === "rejected") {
         setAppointments((prev) =>
           prev.filter((a) => a._id !== id)
@@ -46,6 +50,9 @@ export default function DoctorDashboard() {
     }
   };
 
+  // ===============================
+  // Auth Check + Load Data
+  // ===============================
   useEffect(() => {
     if (!token || role !== "doctor") {
       window.location.href = "/login";
@@ -54,15 +61,18 @@ export default function DoctorDashboard() {
     fetchAppointments();
   }, []);
 
+  // ===============================
+  // UI
+  // ===============================
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Doctor Dashboard</h1>
 
       {appointments.length === 0 ? (
-        <p>No appointments available</p>
+        <p className="text-gray-600">No appointments available</p>
       ) : (
         <div className="overflow-x-auto bg-white rounded shadow">
-          <table className="w-full border">
+          <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gray-200">
                 <th className="p-2 border">Patient</th>
@@ -76,9 +86,9 @@ export default function DoctorDashboard() {
 
             <tbody>
               {appointments.map((a) => (
-                <tr key={a._id}>
+                <tr key={a._id} className="text-center">
                   <td className="p-2 border">
-                    {a.patientId?.name}
+                    {a.patientId?.name || "N/A"}
                   </td>
                   <td className="p-2 border">{a.date}</td>
                   <td className="p-2 border">{a.time}</td>
@@ -87,7 +97,9 @@ export default function DoctorDashboard() {
                     {a.status}
                   </td>
 
+                  {/* ================= ACTIONS ================= */}
                   <td className="p-2 border space-x-2">
+                    {/* Pending */}
                     {a.status === "pending" && (
                       <>
                         <button
@@ -110,14 +122,48 @@ export default function DoctorDashboard() {
                       </>
                     )}
 
+                    {/* Accepted */}
                     {a.status === "accepted" && (
+                      <>
+                        <button
+                          onClick={() =>
+                            updateStatus(a._id, "completed")
+                          }
+                          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                        >
+                          Mark Completed
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            localStorage.setItem(
+                              "appointmentId",
+                              a._id
+                            );
+                            window.location.href =
+                              "/doctor/prescription";
+                          }}
+                          className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+                        >
+                          Create Prescription
+                        </button>
+                      </>
+                    )}
+
+                    {/* Completed */}
+                    {a.status === "completed" && (
                       <button
-                        onClick={() =>
-                          updateStatus(a._id, "completed")
-                        }
-                        className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                        onClick={() => {
+                          localStorage.setItem(
+                            "appointmentId",
+                            a._id
+                          );
+                          window.location.href =
+                            "/doctor/prescription";
+                        }}
+                        className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
                       >
-                        Mark Completed
+                        View / Edit Prescription
                       </button>
                     )}
                   </td>

@@ -5,8 +5,7 @@ const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorMiddleware");
 const adminRoutes = require("./routes/adminRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
-
-
+const prescriptionRoutes = require("./routes/prescriptionRoutes");
 
 dotenv.config(); // MUST be first
 
@@ -27,6 +26,7 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/admin", adminRoutes);
 app.use("/appointments", appointmentRoutes);
+app.use("/api/prescriptions", require("./routes/prescriptionRoutes"));
 
 // Error Handler
 app.use(errorHandler);

@@ -14,6 +14,9 @@ router.post("/", authMiddleware, async (req, res) => {
     date: req.body.date,
     time: req.body.time,
     reason: req.body.reason,
+    age:req.body.age,
+    bloodGroup:req.body.bloodGroup,
+    address:req.body.address,
   });
 
   await appointment.save();

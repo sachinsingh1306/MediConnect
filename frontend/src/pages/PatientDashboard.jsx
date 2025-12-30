@@ -8,6 +8,9 @@ export default function PatientDashboard() {
     date: "",
     time: "",
     reason: "",
+    age: "",
+    bloodGroup: "",
+    address: "",
   });
 
   const token = localStorage.getItem("token");
@@ -28,7 +31,15 @@ export default function PatientDashboard() {
       });
 
       alert("Appointment booked");
-      setForm({ doctor: "", date: "", time: "", reason: "" });
+      setForm({
+        doctor: "",
+        date: "",
+        time: "",
+        reason: "",
+        age: "",
+        bloodGroup: "",
+        address: "",
+      });
       fetchAppointments();
     } catch (err) {
       alert(err.response?.data?.message || "Error booking appointment");
@@ -62,6 +73,43 @@ export default function PatientDashboard() {
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Patient Dashboard</h1>
 
+      {/* ✅ Department Select */}
+      <select
+        name="department"
+        value={form.department}
+        required
+        onChange={handleChange}
+        className="w-full mb-3 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      >
+        <option value="">-- Select Department --</option>
+        <option value="general_medicine">General Medicine</option>
+        <option value="general_surgery">General Surgery</option>
+        <option value="cardiology">Cardiology</option>
+        <option value="neurology">Neurology</option>
+        <option value="orthopedics">Orthopedics</option>
+        <option value="gynecology">Gynecology</option>
+        <option value="obstetrics">Obstetrics</option>
+        <option value="pediatrics">Pediatrics</option>
+        <option value="dermatology">Dermatology</option>
+        <option value="ent">ENT (Ear, Nose & Throat)</option>
+        <option value="ophthalmology">Ophthalmology</option>
+        <option value="psychiatry">Psychiatry</option>
+        <option value="radiology">Radiology</option>
+        <option value="anesthesiology">Anesthesiology</option>
+        <option value="pathology">Pathology</option>
+        <option value="pulmonology">Pulmonology</option>
+        <option value="gastroenterology">Gastroenterology</option>
+        <option value="nephrology">Nephrology</option>
+        <option value="urology">Urology</option>
+        <option value="oncology">Oncology</option>
+        <option value="endocrinology">Endocrinology</option>
+        <option value="rheumatology">Rheumatology</option>
+        <option value="emergency">Emergency Medicine</option>
+        <option value="icu">Intensive Care Unit (ICU)</option>
+        <option value="physiotherapy">Physiotherapy</option>
+        <option value="dental">Dental</option>
+      </select>
       {/* Book Appointment */}
       <form
         onSubmit={handleSubmit}
@@ -100,6 +148,40 @@ export default function PatientDashboard() {
           name="reason"
           placeholder="Reason"
           value={form.reason}
+          required
+          onChange={handleChange}
+          className="w-full mb-3 p-2 border rounded"
+        />
+
+        <input
+          type="number"
+          name="age"
+          placeholder="Age"
+          required
+          onChange={handleChange}
+          className="w-full mb-3 p-2 border rounded"
+        />
+
+        <select
+          name="bloodGroup"
+          required
+          onChange={handleChange}
+          className="w-full mb-3 p-2 border rounded"
+        >
+          <option value="">Select Blood Group</option>
+          <option>A+</option>
+          <option>A-</option>
+          <option>B+</option>
+          <option>B-</option>
+          <option>AB+</option>
+          <option>AB-</option>
+          <option>O+</option>
+          <option>O-</option>
+        </select>
+
+        <textarea
+          name="address"
+          placeholder="Address"
           required
           onChange={handleChange}
           className="w-full mb-3 p-2 border rounded"

@@ -1,15 +1,11 @@
 const express = require("express");
+const router = express.Router();
 const User = require("../models/User");
-const Appointment = require("../models/Appointment");
 const authMiddleware = require("../middleware/authMiddleware");
 
-const router = express.Router();
-
-/**
- * =========================
- * ADMIN ONLY MIDDLEWARE
- * =========================
- */
+/* =========================
+   ADMIN ONLY MIDDLEWARE
+========================= */
 const adminOnly = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access only" });
@@ -17,63 +13,54 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-/**
- * =========================
- * GET ALL USERS
- * =========================
- */
+/* =========================
+   GET ALL USERS
+========================= */
 router.get("/users", authMiddleware, adminOnly, async (req, res) => {
-  const users = await User.find().select("-password");
-  res.json(users);
-});
-
-/**
- * =========================
- * GET ALL APPOINTMENTS
- * =========================
- */
-router.get("/appointments", authMiddleware, adminOnly, async (req, res) => {
-  const appointments = await Appointment.find()
-    .populate("patientId", "name")
-    .populate("doctor", "name");
-
-  res.json(appointments);
-});
-
-/**
- * =========================
- * APPROVE / BLOCK DOCTOR
- * =========================
- */
-router.put("/doctor/:id/approve", authMiddleware, adminOnly, async (req, res) => {
-  const doctor = await User.findById(req.params.id);
-
-  if (!doctor || doctor.role !== "doctor") {
-    return res.status(404).json({ message: "Doctor not found" });
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-
-  doctor.isApproved = !doctor.isApproved;
-  await doctor.save();
-
-  res.json({
-    message: `Doctor ${
-      doctor.isApproved ? "approved" : "blocked"
-    } successfully`,
-  });
 });
 
-/**
- * =========================
- * DASHBOARD STATS
- * =========================
- */
-router.get("/stats", authMiddleware, adminOnly, async (req, res) => {
-  const users = await User.countDocuments();
-  const doctors = await User.countDocuments({ role: "doctor" });
-  const patients = await User.countDocuments({ role: "patient" });
-  const appointments = await Appointment.countDocuments();
+/* =========================
+   APPROVE DOCTOR
+========================= */
+router.put("/:id/approve", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const doctor = await User.findById(req.params.id);
+    if (!doctor || doctor.role !== "doctor") {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
 
-  res.json({ users, doctors, patients, appointments });
+    doctor.isApproved = true;
+    await doctor.save();
+
+    res.json({ message: "Doctor approved" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
+   BLOCK / UNBLOCK USER
+========================= */
+router.put("/:id/block", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+
+    res.json({
+      message: user.isBlocked ? "User blocked" : "User unblocked",
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 module.exports = router;

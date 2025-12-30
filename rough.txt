@@ -11,3 +11,6 @@
     "userId": "69519dc251e7852ef1589266"
 }
 
+
+OCR to image to the text functionality 
+why we use the vite 

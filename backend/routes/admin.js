@@ -39,4 +39,15 @@ router.put("/:id/approve", authMiddleware, async (req, res) => {
   res.json({ message: "Doctor approved successfully" });
 });
 
+// get patient
+router.get("/patients", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const patients = await User.find({ role: "patient" }).select("-password");
+  res.json(patients);
+});
+
+
 module.exports = router;

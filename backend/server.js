@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorMiddleware");
+const adminRoutes = require("./routes/adminRoutes");
 
 dotenv.config(); // MUST be first
 
@@ -21,6 +22,7 @@ app.use("/api/appointments", require("./routes/appointmentRoutes"));
 app.use("/api/prescriptions", require("./routes/prescriptionRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api/admin", adminRoutes);
 
 
 // Error Handler

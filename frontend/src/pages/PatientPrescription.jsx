@@ -3,24 +3,26 @@ import API from "../api/axios";
 
 export default function PatientPrescription() {
   const [prescriptions, setPrescriptions] = useState([]);
-  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const res = await API.get("/prescriptions/my", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log("API response:", res.data); // ✅ DEBUG
+        const res = await API.get("/prescriptions/my");
         setPrescriptions(res.data);
       } catch (err) {
         alert("Failed to load prescriptions");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPrescriptions();
   }, []);
+
+  if (loading) {
+    return <p className="p-6">Loading prescriptions...</p>;
+  }
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -35,7 +37,10 @@ export default function PatientPrescription() {
             className="bg-white p-4 mb-4 rounded shadow"
           >
             <p><b>Doctor:</b> {p.doctorId?.name}</p>
-            <p><b>Date:</b> {new Date(p.createdAt).toLocaleDateString()}</p>
+            <p>
+              <b>Date:</b>{" "}
+              {new Date(p.createdAt).toLocaleDateString()}
+            </p>
 
             <p className="mt-2 font-semibold">Medicines:</p>
             <ul className="list-disc ml-6">
